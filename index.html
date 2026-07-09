@@ -248,7 +248,7 @@ function showDetail(period){
   const bm={};
   rows.forEach(r=>{if(!bm[r.buyer])bm[r.buyer]={krw:0,usd:0};bm[r.buyer].krw+=r.krw;bm[r.buyer].usd+=r.usd;});
   const list=Object.entries(bm).sort((a,b)=>b[1].krw-a[1].krw);
-  const tot=list.reduce((s,[,v])=>s+(state.cur==='krw'?v.krw:v.usd),0);
+  const fxRate=parseInt(period.slice(0,4))>=2025?1450:1350,krwEq=v=>v.krw+v.usd*fxRate,tot=list.reduce((s,[,v])=>s+krwEq(v),0);
   allBuyersForPeriod=list.map(([b])=>b);
 
   function renderRows(){
@@ -258,7 +258,7 @@ function showDetail(period){
       return`<tr style="cursor:pointer;${sel?'background:#e8f0fb;font-weight:700':''}" data-buyer="${b}">
         <td>${b}${sel?' <span style="color:#244061;font-size:10px">▶</span>':''}</td>
         <td>${fmtKRW(v.krw)}</td><td>${fmtUSD(v.usd)}</td>
-        <td>${tot?Math.round(am/tot*100):0}%</td>
+        <td>${tot?Math.round(krwEq(v)/tot*100):0}%</td>
       </tr>`;
     }).join('');
     document.querySelectorAll('#buyerBody tr').forEach(tr=>{
