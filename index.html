@@ -108,7 +108,7 @@ function fmtUSD(v){
   return'$'+v.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0});
 }
 function fmt(v){return state.cur==='krw'?fmtKRW(v):fmtUSD(v);}
-function val(r){return state.cur==='krw'?r.krw:r.usd;}
+function rateOf(y){return(+y)>=2025?1450:1350;}function krwOf(r){return r.krw>0?r.krw:r.usd*rateOf(r.year);}function usdOf(r){return r.usd>0?r.usd:r.krw/rateOf(r.year);}function val(r){return state.cur==='krw'?krwOf(r):usdOf(r);}
 
 function weekStart(wk){
   const s=WEEK_MAP[wk];
@@ -246,9 +246,9 @@ function showDetail(period){
   const key=state.gran==='year'?'year':state.gran==='month'?'month':'week';
   const rows=ECOUNT.filter(r=>r[key]===period);
   const bm={};
-  rows.forEach(r=>{if(!bm[r.buyer])bm[r.buyer]={krw:0,usd:0};bm[r.buyer].krw+=r.krw;bm[r.buyer].usd+=r.usd;});
-  const list=Object.entries(bm).sort((a,b)=>b[1].krw-a[1].krw);
-  const fxRate=parseInt(period.slice(0,4))>=2025?1450:1350,krwEq=v=>v.krw+v.usd*fxRate,tot=list.reduce((s,[,v])=>s+krwEq(v),0);
+    rows.forEach(r=>{if(!bm[r.buyer])bm[r.buyer]={krw:0,usd:0,eq:0};bm[r.buyer].krw+=r.krw;bm[r.buyer].usd+=r.usd;bm[r.buyer].eq+=krwOf(r)});
+    const list=Object.entries(bm).sort((a,b)=>b[1].eq-a[1].eq);
+    const tot=list.reduce((s,[,v])=>s+v.eq,0);
   allBuyersForPeriod=list.map(([b])=>b);
 
   function renderRows(){
@@ -258,7 +258,7 @@ function showDetail(period){
       return`<tr style="cursor:pointer;${sel?'background:#e8f0fb;font-weight:700':''}" data-buyer="${b}">
         <td>${b}${sel?' <span style="color:#244061;font-size:10px">▶</span>':''}</td>
         <td>${fmtKRW(v.krw)}</td><td>${fmtUSD(v.usd)}</td>
-        <td>${tot?Math.round(krwEq(v)/tot*100):0}%</td>
+                <td>${tot?Math.round(v.eq/tot*100):0}%</td>
       </tr>`;
     }).join('');
     document.querySelectorAll('#buyerBody tr').forEach(tr=>{
