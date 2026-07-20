@@ -1,7 +1,6 @@
 (function(){
 'use strict';
 var TARGET=938000000;
-var REF=new Date('2026-07-08T00:00:00');
 var STATUS={active:21,sample:11,nego:2,total:34};
 var COUNTRY={
 'Ai Circle Lens':'미국','Bae Lenses':'미국','MSAPPEAL PTY LTD':'호주',
@@ -30,6 +29,7 @@ document.getElementById('app').innerHTML=
 '<div class="seg" id="granSeg"><button data-g="week">주간</button><button data-g="month" class="on">월간</button><button data-g="year">연간</button></div>'+
 '<div class="seg" id="curSeg"><button data-c="krw" class="on">KRW</button><button data-c="usd">USD</button></div>'+
 '</div>'+
+'<div class="weekhero" id="weekHero"></div>'+
 '<div class="kpis" id="kpis"></div>'+
 '<div class="grid2"><div>'+
 '<div class="panel">'+
@@ -44,7 +44,6 @@ document.getElementById('app').innerHTML=
 '<div>'+
 '<div class="panel"><h2 id="topTitle">Top 바이어</h2><div class="blist" id="topList"></div></div>'+
 '<div class="panel"><h2 id="ctryTitle">국가별 매출</h2><div class="blist" id="ctryList"></div></div>'+
-'<div class="panel"><h2>이탈 위험 · 60일+ 무주문</h2><div id="riskList"></div></div>'+
 '</div></div>';
 
 var state={gran:'month',cur:'krw',page:0,sel:null,selBuyer:null,commType:'전체'};
@@ -71,9 +70,6 @@ function curPage(){var pg=getPages();var i=Math.min(Math.max(0,state.page),pg.le
 function keyOf(r){return state.gran==='year'?r.year:state.gran==='month'?r.month:r.week}
 function aggBy(keys){var m={};keys.forEach(function(k){m[k]=0});ECOUNT.forEach(function(r){var k=keyOf(r);if(k in m)m[k]+=val(r)});return keys.map(function(k){return m[k]})}
 
-function lastOrderMap(){var m={};ECOUNT.forEach(function(r){var d=weekStart(r.week);var e=new Date(d);e.setDate(d.getDate()+6);if(!m[r.buyer]||e>m[r.buyer])m[r.buyer]=e});return m}
-function riskBuyers(){var lo=lastOrderMap();var out=[];Object.keys(lo).forEach(function(b){var days=Math.floor((REF-lo[b])/864e5);if(days>=60&&days<=365)out.push({b:b,days:days})});out.sort(function(a,b){return b.days-a.days});return out}
-
 function dHtml(a,b,label){if(!b)return'';var p=(a-b)/b*100;var up=p>=0;return'<span class="delta '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+Math.abs(p).toFixed(0)+'%</span> '+label}
 
 function renderKPIs(){
@@ -87,12 +83,24 @@ function renderKPIs(){
  var mLF=sumM(lastFull), mBefore=sumM(before), mYoy=sumM(yoy);
  var ytdCur=0,ytdKRW=0;ECOUNT.forEach(function(r){if(r.year===ly){ytdCur+=val(r);ytdKRW+=krwOf(r)}});
  var pctT=ytdKRW/TARGET*100;
- var risk=riskBuyers();
  document.getElementById('kpis').innerHTML=
  '<div class="kpi"><div class="lbl">'+lm+'월 매출 (진행중)</div><div class="val">'+fmt(mtd)+'</div><div class="sub2">거래 '+cntL+'건 · ~7/8 기준</div></div>'+
  '<div class="kpi"><div class="lbl">'+(+lastFull.split('-')[1])+'월 매출 (전월)</div><div class="val">'+fmt(mLF)+'</div><div class="sub2">'+dHtml(mLF,mBefore,'전월比')+' &nbsp;'+dHtml(mLF,mYoy,'전년比')+'</div></div>'+
  '<div class="kpi"><div class="lbl">'+ly+' 누적 매출 (YTD)</div><div class="val">'+fmt(ytdCur)+'</div><div class="sub2">목표 ₩9.38억 대비 <b>'+pctT.toFixed(1)+'%</b></div><div class="gaugewrap"><div class="gaugebar" style="width:'+Math.min(100,pctT)+'%"></div></div></div>'+
- '<div class="kpi"><div class="lbl">바이어 현황</div><div class="val">'+STATUS.total+'개사</div><div class="statusrow"><span>활성 '+STATUS.active+'</span><span>샘플 '+STATUS.sample+'</span><span>협의중 '+STATUS.nego+'</span></div><div class="sub2">이탈위험(60일+) <b style="color:#c0392b">'+risk.length+'</b>개사</div></div>';
+ '<div class="kpi"><div class="lbl">바이어 현황</div><div class="val">'+STATUS.total+'개사</div><div class="statusrow"><span>활성 '+STATUS.active+'</span><span>샘플 '+STATUS.sample+'</span><span>협의중 '+STATUS.nego+'</span></div></div>';
+ renderWeekHero();
+}
+
+function renderWeekHero(){
+ var weeks=[];ECOUNT.forEach(function(r){if(weeks.indexOf(r.week)<0)weeks.push(r.week)});weeks.sort();
+ var wCur=weeks[weeks.length-1], wPrev=weeks[weeks.length-2];
+ function sumW(w){var s=0;ECOUNT.forEach(function(r){if(r.week===w)s+=val(r)});return s}
+ var vCur=sumW(wCur), cnt=ECOUNT.filter(function(r){return r.week===wCur}).length;
+ var vPrev=wPrev?sumW(wPrev):0;
+ document.getElementById('weekHero').innerHTML=
+ '<div class="wh-box"><div class="wh-lbl">이번주 매출 (진행중) · '+weekLabel(wCur)+'</div><div class="wh-val">'+fmt(vCur)+'</div><div class="wh-sub">거래 '+cnt+'건</div></div>'+
+ '<div class="wh-div"></div>'+
+ '<div class="wh-box wh-prev"><div class="wh-lbl">전주 · '+(wPrev?weekLabel(wPrev):'–')+'</div><div class="wh-val2">'+fmt(vPrev)+'</div><div class="wh-sub">'+dHtml(vCur,vPrev,'전주比')+'</div></div>';
 }
 
 function renderChart(){
@@ -147,8 +155,6 @@ function renderSide(){
  var mc=tc.length?tc[0][1]:1;var tct=0;Object.keys(pc).forEach(function(c){tct+=pc[c]});
  document.getElementById('ctryTitle').textContent='국가별 매출 ('+yr+' YTD)';
  document.getElementById('ctryList').innerHTML=tc.map(function(e){return'<div class="brow c"><div class="t"><span class="nm">'+e[0]+'</span><span class="amt">'+fmt(e[1])+' · '+Math.round(e[1]/tct*100)+'%</span></div><div class="bar"><div class="fill" style="width:'+(e[1]/mc*100)+'%"></div></div></div>'}).join('');
- var rk=riskBuyers();
- document.getElementById('riskList').innerHTML=rk.length?rk.slice(0,8).map(function(x){return'<div class="risk"><span>'+x.b+'</span><span class="d">'+x.days+'일 전</span></div>'}).join('')+(rk.length>8?'<div class="msg">외 '+(rk.length-8)+'개사</div>':''):'<div class="msg">해당 없음</div>';
 }
 
 function showDetail(period){
