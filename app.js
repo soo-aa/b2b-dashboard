@@ -24,7 +24,7 @@ function bmName(n){return BM[n]||n}
 
 document.getElementById('app').innerHTML=
 '<h1>B2B 수출 대시보드 — IM OLOLA</h1>'+
-'<div class="sub">이카운트 2024~2026 · 소통 로그 기준일: 2026-07-07 · 데이터 기준일: 2026-07-08 <span style="color:#aab">※ 정적 스냅샷</span></div>'+
+'<div class="sub">이카운트 2024~2026 · 소통 로그 기준일: 2026-07-07 · 데이터 기준일: 2026-07-31 <span style="color:#aab">※ 정적 스냅샷</span></div>'+
 '<div class="toolbar">'+
 '<div class="seg" id="granSeg"><button data-g="week">주간</button><button data-g="month" class="on">월간</button><button data-g="year">연간</button></div>'+
 '<div class="seg" id="curSeg"><button data-c="krw" class="on">KRW</button><button data-c="usd">USD</button></div>'+
