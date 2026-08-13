@@ -84,7 +84,7 @@ function renderKPIs(){
  var ytdCur=0,ytdKRW=0;ECOUNT.forEach(function(r){if(r.year===ly){ytdCur+=val(r);ytdKRW+=krwOf(r)}});
  var pctT=ytdKRW/TARGET*100;
  document.getElementById('kpis').innerHTML=
- '<div class="kpi"><div class="lbl">'+lm+'월 매출 (진행중)</div><div class="val">'+fmt(mtd)+'</div><div class="sub2">거래 '+cntL+'건 · ~7/8 기준</div></div>'+
+  '<div class="kpi"><div class="lbl">'+lm+'월 매출 (진행중)</div><div class="val">'+fmt(mtd)+'</div><div class="sub2">거래 '+cntL+'건 · ~8/13 기준</div></div>'+
  '<div class="kpi"><div class="lbl">'+(+lastFull.split('-')[1])+'월 매출 (전월)</div><div class="val">'+fmt(mLF)+'</div><div class="sub2">'+dHtml(mLF,mBefore,'전월比')+' &nbsp;'+dHtml(mLF,mYoy,'전년比')+'</div></div>'+
  '<div class="kpi"><div class="lbl">'+ly+' 누적 매출 (YTD)</div><div class="val">'+fmt(ytdCur)+'</div><div class="sub2">목표 ₩9.38억 대비 <b>'+pctT.toFixed(1)+'%</b></div><div class="gaugewrap"><div class="gaugebar" style="width:'+Math.min(100,pctT)+'%"></div></div></div>'+
  '<div class="kpi"><div class="lbl">바이어 현황</div><div class="val">'+STATUS.total+'개사</div><div class="statusrow"><span>활성 '+STATUS.active+'</span><span>샘플 '+STATUS.sample+'</span><span>협의중 '+STATUS.nego+'</span></div></div>';
